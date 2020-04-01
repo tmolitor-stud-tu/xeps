@@ -54,7 +54,7 @@
     </p>
 </section1>
 
-<section1 topic="How it works">
+<section1 topic="Requirements" anchor='requirements'>
     <p>
         A client that supports presence versioning needs to keep track and store the presence statuses of all MUC occupants, across multiple MUC sessions.
         Similarly, a MUC service which supports presence versioning will also need to maintain a changelog of version numbers and presence states.
@@ -67,8 +67,6 @@
     </p>
     <p>
         If presence versioning is not supported by the server, the client MUST NOT include a 'ver' attribute.
-    </p>
-    <p>
     </p>
 
     <example caption='User specifies the last known presence version when seeking to enter a MUC'><![CDATA[
@@ -170,6 +168,10 @@
             </p>
         </section3>
     </section2>
+</section1>
+
+<section1 topic='Security Considerations' anchor='security'>
+  <p>A MUC room should remove the 'ver' attribute from a &lt;presence/&gt; stanza before broadcasting it to other users, to avoid leaking any unnecessary information about a user's last join.</p>
 </section1>
 
 <section1 topic='IANA Considerations' anchor='iana'>
