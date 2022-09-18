@@ -22,16 +22,11 @@
   <supersededby/>
   <shortname>sasl2</shortname>
   &dcridland;
-  <author>
-    <firstname>Thilo</firstname>
-    <surname>Molitor</surname>
-    <email>thilo+xmpp@eightysoft.de</email>
-    <jid>thilo.molitor@juforum.de</jid>
-  </author>
+  &tmolitor;
   &mwild;
   <revision>
     <version>0.4.0</version>
-    <date>2022-09-10</date>
+    <date>2022-09-18</date>
     <initials>tm</initials>
     <remark>
       <ul>
