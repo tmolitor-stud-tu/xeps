@@ -121,7 +121,7 @@
     <p>Note that SASL2 is impossible for clients to initiate without at least one mechanism being available, and therefore MUST NOT be offered if not at least one mechanism can be provided.</p>
     <p>The Service Name used by XMPP is unchanged from &rfc6120;.</p>
     <p>All servers and clients supporting channel-binding MUST implement &xep0440;.</p>
-    <p>Additional stream features that can be negotiated as part of a successful SASL authentication can be included in the &lt;inline/> element.</p>
+    <p>Additional stream features that can be negotiated as part of a successful SASL authentication can be included in the &lt;inline/> element which is a immediate child of &lt;authentication/>.</p>
     <example caption="Client sending stream header"><![CDATA[
 <?xml version='1.0'?>
 <stream:stream
@@ -147,13 +147,13 @@
     <mechanism>SCRAM-SHA-1</mechanism>
     <mechanism>SCRAM-SHA-1-PLUS</mechanism>
     <upgrade>SCRAM-SHA-256</upgrade>
+    <inline xmlns="urn:xmpp:sasl:2">
+      <!-- Server indicates that XEP-0198 can be negotiated "inline" -->
+      <enable xmlns="urn:xmpp:sm:3"/>
+      <!-- Server indicates support for XEP-0386 Bind 2 -->
+      <bind xmlns="urn:xmpp:bind2:1"/>
+    </inline>
   </authentication>
-  <inline xmlns="urn:xmpp:sasl:2">
-    <!-- Server indicates that XEP-0198 can be negotiated "inline" -->
-    <enable xmlns="urn:xmpp:sm:3"/>
-    <!-- Server indicates support for XEP-0386 Bind 2 -->
-    <bind xmlns="urn:xmpp:bind2:1"/>
-  </inline>
   <!-- Channel-binding information provided by XEP-0440 -->
   <sasl-channel-binding xmlns='urn:xmpp:sasl-cb:0'>
     <channel-binding type='tls-server-end-point'/>
@@ -607,10 +607,10 @@
 <stream:features>
   <authentication xmlns='urn:xmpp:sasl:2'>
     <mechanism>BLURDYBLOOP</mechanism>
+    <inline xmlns="urn:xmpp:sasl:2">
+      <megabind xmlns='urn:example:megabind'/>
+    </inline>
   </authentication>
-  <inline xmlns="urn:xmpp:sasl:2">
-    <megabind xmlns='urn:example:megabind'/>
-  </inline>
 </stream:features>
 
 <!--
@@ -728,15 +728,13 @@
             <xs:sequence>
                 <xs:element name="mechanism" type="SaslMechName" minOccurs="1" maxOccurs="unbounded"/>
                 <xs:element name="upgrade" type="SaslMechName" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:any/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="inline">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:any/>
+                <xs:element name="inline" minOccurs="0" maxOccurs="1">
+                  <xs:complexType>
+                      <xs:sequence>
+                          <xs:any/>
+                      </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -764,8 +762,6 @@
     <xs:element name="challenge" type="SaslData"/>
 
     <xs:element name="response" type="SaslData"/>
-
-    <xs:element name="initial-response" type="SaslData"/>
 
     <xs:element name="success">
         <xs:complexType>
@@ -809,6 +805,8 @@
         </xs:sequence>
       </xs:complexType>
     </xs:element>
+    
+    <xs:element name="hash" type="SaslData"/>
 
     <xs:simpleType name="Jid">
         <xs:restriction base="xs:string">
