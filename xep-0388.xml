@@ -26,7 +26,7 @@
   &mwild;
   <revision>
     <version>0.4.0</version>
-    <date>2022-09-18</date>
+    <date>2022-09-23</date>
     <initials>tm</initials>
     <remark>
       <ul>
@@ -409,7 +409,7 @@
   <p>As explained in § 13.8.3 of &rfc6120;, servers and clients SHOULD NOT support SASL PLAIN unless it is required by the authentication backend. Usage of PLAIN allows for trivial downgrade atacks by Man-In-The-Middle attackers circumventing any possible channel-binding or mutual authentication and even allowing the attacker to gain access to the cleartext password. If possible, PLAIN should be disabled by default on servers and clients and only be enabled when configured by the admin respective client user (if at all).</p>
   <p>This protocol allows the client to provide a hint of its identity prior to authentication. This value MUST NOT be trusted to contain the real identity of the connecting client. Varying pre-authentication responses (such as supported SASL mechanisms) based on this value may allow unauthorized parties to discover whether an account exists, and even guess at what software might be used with that account (e.g. by observing whether the client has upgraded to specific mechanisms). Minimizing differences between the default response for unregistered JIDs and registered JIDs, as well as rate-limiting (to prevent enumeration attempts), are possible countermeasures. If the server does not know the client-identity it is RECOMMENDED to randomize the list of provided SASL mechanisms to reduce these risks even further.</p>
   <p>SASL2 MUST only be used by Clients or offered by Servers after TLS negotiation, see § 5.2 and § 5.3.4 of &rfc6120;.</p>
-  <p>Clients MUST use channel-binding, if available, when requesting an upgrade to make sure no MITM can eavesdrop that hash and subsequently use it for authentication.</p>
+  <p>Clients MUST use channel-binding, if available, when requesting an upgrade to make sure no MITM can eavesdrop that hash and subsequently use it for authentication. Note that a client can always choose to not upgrade SASL mechanisms if it can not use channel-binding or the connection is otherwise deemed not secure enough.</p>
 </section1>
 
 <section1 topic="SASL Profile Definition">
