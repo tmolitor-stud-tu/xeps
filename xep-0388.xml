@@ -114,9 +114,9 @@
 
 <section1 topic='Overview' anchor="overview">
   <section2 topic="SASL mechanism negotiation" anchor="feature">
-    <p>Clients capable of SASL2 MUST send the desired bare JID they want to authenticate for in the "from" attribute of the stream-header unless they don't know it (e.g. when using the GSS-API SASL mechanism etc.) according to section 4.7.1 of &rfc6120;. If the "from" attribute is not empty an the domain used in this attribute does not match the domain used in the "to" attribute the server SHOULD respond with an invalid-from error as defined in §4.9.3.9 of &rfc6120;. Providing the bare JID in the "from" attribute saves one round-trip.</p>
+    <p>Clients capable of SASL2 MUST send the desired bare JID they want to authenticate for in the "from" attribute of the stream-header unless they don't know it (e.g. when using the GSS-API SASL mechanism etc.) according to section 4.7.1 of &rfc6120;. If the "from" attribute is not empty and the domain used in this attribute does not match the domain used in the "to" attribute the server SHOULD respond with an invalid-from error as defined in §4.9.3.9 of &rfc6120;. Providing the bare JID in the "from" attribute saves one round-trip.</p>
     <p>Servers capable of SASL2 offer a stream feature of &lt;authentication/>, qualified by the "urn:xmpp:sasl:2" namespace. This in turn contains one or more &lt;mechanism/> elements in the same namespace, and potentially other elements (for example, the &lt;hostname/> element defined within &xep0233;). The mechanism elements MUST only offer mechanisms the server can offer for the JID provided by the client in the "from" attribute of the stream-header. If that atrribute is omitted or does not contain a recognised bare JID, the server SHOULD only offer mechanisms it can provide independently of the JID. Note that varying responses based on whether an account exists or not may leak the existence of accounts to unauthorized parties. See the security considerations section for more information.</p>
-    <p>The &lt;authentication/> element MAY contain a list of &lt;upgrade/> elements each containing a string value of a possible SASL mechanism the client can perform an upgrade task for. For more information, see <link url="#upgrade">SASL mechanism upgrade tasks</link>.</p>
+    <p>The &lt;authentication/> element MAY contain a list of &lt;upgrade/> elements each containing a string value of a possible SASL mechanism the client can perform an upgrade task for prefixed with "UPGR-". For more information, see <link url="#upgrade">SASL mechanism upgrade tasks</link>.</p>
     <p>The feature so advertised, and its child content, SHOULD be stable for the given stream to and from attributes and encryption state, and therefore MAY be cached by clients for later connections.</p>
     <p>Note that SASL2 is impossible for clients to initiate without at least one mechanism being available, and therefore MUST NOT be offered if not at least one mechanism can be provided.</p>
     <p>The Service Name used by XMPP is unchanged from &rfc6120;.</p>
@@ -143,15 +143,15 @@
   xmlns='jabber:client'
   xmlns:stream='http://etherx.jabber.org/streams'>
 <stream:features>
-  <authentication xmlns="urn:xmpp:sasl:2">
+  <authentication xmlns='urn:xmpp:sasl:2'>
     <mechanism>SCRAM-SHA-1</mechanism>
     <mechanism>SCRAM-SHA-1-PLUS</mechanism>
-    <upgrade>SCRAM-SHA-256</upgrade>
-    <inline xmlns="urn:xmpp:sasl:2">
+    <upgrade>UPGR-SCRAM-SHA-256</upgrade>
+    <inline xmlns='urn:xmpp:sasl:2'>
       <!-- Server indicates that XEP-0198 can be negotiated "inline" -->
-      <enable xmlns="urn:xmpp:sm:3"/>
+      <enable xmlns='urn:xmpp:sm:3'/>
       <!-- Server indicates support for XEP-0386 Bind 2 -->
-      <bind xmlns="urn:xmpp:bind2:1"/>
+      <bind xmlns='urn:xmpp:bind2:1'/>
     </inline>
   </authentication>
   <!-- Channel-binding information provided by XEP-0440 -->
@@ -170,10 +170,10 @@
     <p>If the stream's from attribute (if present) does not match the non-empty authorization string, the server MUST fail the authentication as defined in <link url="#failure">Failure</link>.</p>
     <p>Clients SHOULD also include a &lt;user-agent/> element, informing the server about the connecting client. The 'id' attribute is RECOMMENDED, and if present it contains a unique stable identifier for the client installation. This allows the server to provide functionality such as deriving stable resource identifiers (see &xep0386;). The child elements &lt;software/> and &lt;device/> contain text descriptions of the client software and the device it is installed on. These allow the server to keep the user informed about what devices are connected to their account. Servers MUST NOT expose this information to other entities (such functionality is available in &xep0092; if required).</p>
     <example caption="An authentication request"><![CDATA[
-<authenticate xmlns='urn:xmpp:sasl:2' mechanism="SCRAM-SHA-1-PLUS" upgrade="SCRAM-SHA-256">
+<authenticate xmlns='urn:xmpp:sasl:2' mechanism='SCRAM-SHA-1-PLUS' upgrade='UPGR-SCRAM-SHA-256'>
   <!-- Base64 of: 'p=tls-exporter,,n=user,r=12C4CD5C-E38E-4A98-8F6D-15C38F51CCC6' -->
   <initial-response>cD10bHMtZXhwb3J0ZXIsLG49dXNlcixyPTEyQzRDRDVDLUUzOEUtNEE5OC04RjZELTE1QzM4RjUxQ0NDNg==</initial-response>
-  <user-agent id="d4565fa7-4d72-4749-b3d3-740edbf87770">
+  <user-agent id='d4565fa7-4d72-4749-b3d3-740edbf87770'>
     <software>AwesomeXMPP</software>
     <device>Kiva's Phone</device>
   </user-agent>
@@ -185,7 +185,7 @@
   <initial-response>
     SSBzaG91bGQgbWFrZSB0aGlzIGEgY29tcGV0aXRpb24=
   </initial-response>
-  <user-agent id="d4565fa7-4d72-4749-b3d3-740edbf87770">
+  <user-agent id='d4565fa7-4d72-4749-b3d3-740edbf87770'>
     <software>AwesomeXMPP</software>
     <device>Kiva's Phone</device>
   </user-agent>
@@ -318,7 +318,7 @@
 
 <section1 topic="SASL mechanism upgrade tasks" anchor="upgrade">
   <p>Modern XMPP server deployments typically store only the hash of a user's password, to improve account security. At times, it may be desirable for servers to upgrade to newer or different hash algorithms, e.g. so they can offer different authentication mechanisms for improved security or interoperability. Due to the security properties of one-way cryptographic hash algorithms, it is not possible for the server to extract the original data and simply hash it in a new format. To perform such upgrades, the cooperation of the client is necessary - because it has, or can obtain from the user, the original password to derive a hash from.</p>
-  <p>As described in the <link url="#feature">SASL mechanism negotiation</link> section, the server can inform the client of one or more upgrades that need to be performed for the current account. The client SHOULD always execute any upgrade task it recognises. To do this, it MUST include the 'upgrade' attribute of its &lt;authenticate/> element, as specified in <link url="#initiation">Initiation</link>.</p>
+  <p>As described in the <link url="#feature">SASL mechanism negotiation</link> section, the server can inform the client of one or more upgrades that need to be performed for the current account. The client SHOULD always request any upgrade task it recognises. To do this, it includes the 'upgrade' attribute in its &lt;authenticate/> element naming the upgrade task it wants to perform, as specified in <link url="#initiation">Initiation</link>.</p>
   <p>Upon successfully authenticating the client (including any secondary authentication steps required for the account), but before the final &lt;success/> would be sent, the server sends a &lt;continue/> element, which MUST contain a single task, matching whatever was selected by the client. The client then initiates this upgrade task by providing a corresponding &lt;next/> element providing the task name.</p>
   <p>Upon receiving the &lt;next/> element for the upgrade, the server provides the elements and data needed for the client to calculate the requested data. The concrete elements and exchanges needed for the upgrade are specific to individual tasks. This document currently defines tasks for upgrading credentials between different members of the SCRAM family of mechanisms. Other tasks may be documented in future versions of this document, or in other documents.</p>
   <p>Upgrade task names SHOULD have a prefix of "UPGR-" followed by the SASL mechanism name to upgrade to, and if multiple mechanisms differ only in their support for channel-binding (e.g. SCRAM's -PLUS variants), implementations MUST use only the names of variants without channel-binding for the task names, because mechanism upgrades are independent of any channel-binding. Finally, upgrade tasks MUST NOT transmit plaintext passwords (or any reversible encoding of them) if the SASL mechanism to upgrade allows this to be avoided.</p>
@@ -487,7 +487,7 @@
 -->
 <authenticate xmlns='urn:xmpp:sasl:2' mechanism='PLAIN'>
   <initial-response>AGFsaWNlQGV4YW1wbGUub3JnCjM0NQ==</initial-response>
-  <user-agent id="d4565fa7-4d72-4749-b3d3-740edbf87770">
+  <user-agent id='d4565fa7-4d72-4749-b3d3-740edbf87770'>
     <software>AwesomeXMPP</software>
     <device>Kiva's Phone</device>
   </user-agent>
@@ -546,7 +546,7 @@
   Here, no initial response is needed, so none is sent.
 -->
 <authenticate xmlns='urn:xmpp:sasl:2' mechanism='CRAM-MD5'>
-  <user-agent id="d4565fa7-4d72-4749-b3d3-740edbf87770">
+  <user-agent id='d4565fa7-4d72-4749-b3d3-740edbf87770'>
     <software>AwesomeXMPP</software>
     <device>Kiva's Phone</device>
   </user-agent>
@@ -609,7 +609,7 @@
 <stream:features>
   <authentication xmlns='urn:xmpp:sasl:2'>
     <mechanism>BLURDYBLOOP</mechanism>
-    <inline xmlns="urn:xmpp:sasl:2">
+    <inline xmlns='urn:xmpp:sasl:2'>
       <megabind xmlns='urn:example:megabind'/>
     </inline>
   </authentication>
@@ -622,7 +622,7 @@
   <initial-response>
     SW5pdGlhbCBSZXNwb25zZQ==
   </initial-response>
-  <user-agent id="d4565fa7-4d72-4749-b3d3-740edbf87770">
+  <user-agent id='d4565fa7-4d72-4749-b3d3-740edbf87770'>
     <software>AwesomeXMPP</software>
     <device>Kiva's Phone</device>
   </user-agent>
@@ -837,7 +837,7 @@
   </section1>
 
 <section1 topic='Acknowledgements' anchor='ack'>
-  <p>The author wishes to share any credit with many members of the community, including Lance Stout, Ralph Meijer, Phil Roberts and Florian Schmaus.</p>
+  <p>The authors wish to share any credit with many members of the community, including Lance Stout, Ralph Meijer, Phil Roberts and Florian Schmaus.</p>
 </section1>
 
 </xep>
