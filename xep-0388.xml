@@ -590,7 +590,7 @@
   </section2>
   <section2 topic="Advanced Usage">
     <p>This moves into the deeply hypothetical. A binding extension is posited, alongside an unrealistic 2FA mechanism which somehow mutually authenticates because why not.</p>
-    <example caption="CRAM-MD5 Authentication"><![CDATA[
+    <example caption="BLURDYBLOOP and UNREALISTIC-2FA"><![CDATA[
 <!--
   Client sends stream header
 -->
