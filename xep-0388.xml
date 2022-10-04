@@ -148,8 +148,8 @@
     <mechanism>SCRAM-SHA-1-PLUS</mechanism>
     <upgrade>UPGR-SCRAM-SHA-256</upgrade>
     <inline>
-      <!-- Server indicates that XEP-0198 can be negotiated "inline" -->
-      <enable xmlns='urn:xmpp:sm:3'/>
+      <!-- Server indicates that XEP-0198 stream resumption can be done "inline" -->
+      <resume xmlns='urn:xmpp:sm:3'/>
       <!-- Server indicates support for XEP-0386 Bind 2 -->
       <bind xmlns='urn:xmpp:bind2:1'/>
     </inline>
