@@ -147,7 +147,7 @@
     <mechanism>SCRAM-SHA-1</mechanism>
     <mechanism>SCRAM-SHA-1-PLUS</mechanism>
     <upgrade>UPGR-SCRAM-SHA-256</upgrade>
-    <inline xmlns='urn:xmpp:sasl:2'>
+    <inline>
       <!-- Server indicates that XEP-0198 can be negotiated "inline" -->
       <enable xmlns='urn:xmpp:sm:3'/>
       <!-- Server indicates support for XEP-0386 Bind 2 -->
@@ -609,7 +609,7 @@
 <stream:features>
   <authentication xmlns='urn:xmpp:sasl:2'>
     <mechanism>BLURDYBLOOP</mechanism>
-    <inline xmlns='urn:xmpp:sasl:2'>
+    <inline>
       <megabind xmlns='urn:example:megabind'/>
     </inline>
   </authentication>
