@@ -31,7 +31,7 @@
     <remark>
       <ul>
         <li>Bump namespace</li>
-        <li>Make SCRAM hashes (and other SASL mechanism families) upgradable</li>
+        <li>Allow for SASL mechanism upgrades</li>
         <li>Add reference to &xep0440; and &rfc5802;</li>
         <li>Update security considerations and business rules</li>
         <li>Clarify &lt;continue/> and tasks</li>
@@ -107,7 +107,7 @@
     <li>Support for mandatory password changes</li>
     <li>Support for algorithm upgrades</li>
   </ul>
-  <p>The new SASL profile documented herein is primarily a syntactic change to allow extensibility, combined with removal of the (largely) redundant stream restart, and additional results beyond total success or abject failure, as well as an upgrade path for different SCRAM hashes.</p>
+  <p>The new SASL profile documented herein is primarily a syntactic change to allow extensibility, combined with removal of the (largely) redundant stream restart, and additional results beyond total success or abject failure, as well as an upgrade path for different SASL mechanisms.</p>
   <section2 topic="Terminology">
     <p>Although initiating entities, in general, use SASL, and receiving entities offer it, the SASL specification and common parlance both use "Client " and "Server"; this specification uses Client and Server and assumes C2S links. This is not intended to preclude use of this SASL profile on S2S links. The term "SASL2" is used to mean the new SASL profile specified in this document; however the same RFC 4422 definition of SASL (and SASL profiles) applies.</p>
     <p>Examples often use hypothetical SASL mechanisms and sub-extensions; this specification does not intend to make a position on any particular SASL mechanism, and the Mandatory To Implement mechanisms are unaffected.</p>
@@ -280,7 +280,7 @@
 ]]></example>
     </section3>
     <section3 topic="Continue" anchor="continue">
-      <p>A &lt;continue/> element is used to indicate that while the SASL exchange was successful, it is insufficient to allow authentication at this time. This can be used to indicate, for example, that the Client needs to perform a Second Factor Authentication ("2FA"), needs to perform an SCRAM upgrade task as requested by the client, or is required to change password (this list is not meant to be exhaustive in any way).</p>
+      <p>A &lt;continue/> element is used to indicate that while the SASL exchange was successful, it is insufficient to allow authentication at this time. This can be used to indicate, for example, that the Client needs to perform a Second Factor Authentication ("2FA"), needs to perform an SASL mechanism upgrade task as requested by the client, or is required to change password (this list is not meant to be exhaustive in any way).</p>
       <p>Such tasks are presented within a &lt;tasks> element, which contains a sequence of &lt;task> elements, each containing a name. These tasks are analogous to a SASL mechanism, but have a number of differences - they may never attempt to negotiate a new authorization identifier, nor a new security layer.</p>
       <p>Like the &lt;success/> element, the &lt;continue/> element MAY contain an &lt;additional-data/> element containing additional data from the SASL mechanism that has completed.</p>
       <p>A client MAY choose any one of the offered tasks; if multiple are required a sequence of &lt;continue> exchanges will occur until all mandatory tasks are complete.</p>
@@ -289,7 +289,7 @@
       <example caption="Continue Required"><![CDATA[
 <continue xmlns='urn:xmpp:sasl:2'>
   <additional-data>
-   SSdtIGJvcmVkIG5vdy4=
+    SSdtIGJvcmVkIG5vdy4=
   </additional-data>
   <tasks>
     <task>HOTP-EXAMPLE</task>
@@ -299,8 +299,8 @@
 </continue>
 ]]></example>
       <p>After the final octet of the first &lt;continue> element, any SASL security layer negotiated in the preceding exchange SHALL be immediately in effect.</p>
-      <p>Clients respond with a &lt;next/> element, which has a single mandatory attribute of "task", containing the selected task name, and MAY contain any other element defined in a future protocol defining this task.</p>
-      <p>The concrete elements exchanged for each task after the &lt;next/> have to be defined in a future protocol defining a concrete task. Each task MUST end either by the server sending a &lt;failure/> element, if the task failed, a &lt;continue/> element, if the task was completed successfully and the server requests the client to perform a new task, or a &lt;success/> element, indicating that the task was completed successfully and no further tasks are needed.</p>
+      <p>Clients respond with a &lt;next/> element, which has a single mandatory attribute of "task", containing the selected task name, and MAY contain any other element as defined in a future protocol defining this task.</p>
+      <p>The concrete elements exchanged for each task after the &lt;next/> reside inside a &lt;task-data/> wrapper element in the namespace "urn:xmpp:sasl:2". Each wrapper element can contain any other element as defined in a future protocol defining this concrete task. Each task MUST end either by the server sending a &lt;failure/> element, if the task failed, a &lt;continue/> element, if the task was completed successfully and the server requests the client to perform a new task, or a &lt;success/> element, indicating that the task was completed successfully and no further tasks are needed.</p>
       <example caption="Client Continues"><![CDATA[
 <next xmlns='urn:xmpp:sasl:2' task='TOTP-EXAMPLE'>
   <totp-challenge xmlns="urn:totp:example">
@@ -322,8 +322,8 @@
 <section1 topic="SASL mechanism upgrade tasks" anchor="upgrade">
   <p>Modern XMPP server deployments typically store only the hash of a user's password, to improve account security. At times, it may be desirable for servers to upgrade to newer or different hash algorithms, e.g. so they can offer different authentication mechanisms for improved security or interoperability. Due to the security properties of one-way cryptographic hash algorithms, it is not possible for the server to extract the original data and simply hash it in a new format. To perform such upgrades, the cooperation of the client is necessary - because it has, or can obtain from the user, the original password to derive a hash from.</p>
   <p>As described in the <link url="#feature">SASL mechanism negotiation</link> section, the server can inform the client of one or more upgrades that need to be performed for the current account. The client SHOULD always request any upgrade task it recognises. To do this, it includes the 'upgrade' attribute in its &lt;authenticate/> element naming the upgrade task it wants to perform, as specified in <link url="#initiation">Initiation</link>.</p>
-  <p>Upon successfully authenticating the client (including any secondary authentication steps required for the account), but before the final &lt;success/> would be sent, the server sends a &lt;continue/> element, which MUST contain a single task, matching whatever was selected by the client. The client then initiates this upgrade task by providing a corresponding &lt;next/> element providing the task name.</p>
-  <p>Upon receiving the &lt;next/> element for the upgrade, the server provides the elements and data needed for the client to calculate the requested data. The concrete elements and exchanges needed for the upgrade are specific to individual tasks. This document currently defines tasks for upgrading credentials between different members of the SCRAM family of mechanisms. Other tasks may be documented in future versions of this document, or in other documents.</p>
+  <p>Upon successfully authenticating the client (including any secondary authentication steps required for the account), but before the final &lt;success/> would be sent, the server sends a &lt;continue/> element, which MUST contain a single task, matching whatever was selected by the client. The client then initiates this upgrade task by providing a corresponding &lt;next/> element providing the task name and optionally including any further child-elements as defined by the specification for the concrete upgrade task.</p>
+  <p>Upon receiving the &lt;next/> element for the upgrade, the server provides the elements and data needed for the client to calculate the requested data. The concrete elements and exchanges needed for the upgrade are specific to individual tasks. These tasks may be documented in other documents.</p>
   <p>Upgrade task names SHOULD have a prefix of "UPGR-" followed by the SASL mechanism name to upgrade to, and if multiple mechanisms differ only in their support for channel-binding (e.g. SCRAM's -PLUS variants), implementations MUST use only the names of variants without channel-binding for the task names, because mechanism upgrades are independent of any channel-binding. Finally, upgrade tasks MUST NOT transmit plaintext passwords (or any reversible encoding of them) if the SASL mechanism to upgrade allows this to be avoided.</p>
   <example caption="SASL mechanism upgrade required"><![CDATA[
 <!-- The Server requests the client to perform the upgrade task for BLOOP2 -->
@@ -338,67 +338,33 @@
 </continue>
 
 <!-- The Client initiates the task -->
-<next xmlns='urn:xmpp:sasl:2' task='UPGR-BLOOP2'/>
+<next xmlns='urn:xmpp:sasl:2' task='UPGR-BLOOP2'>
+  <request xmlns='urn:xmpp:bloop2:example'>
+    UGxlYXNlIHVwZ3JhZGUgbWUh
+  </request>
+</next>
 
 <!-- The Server provides the needed data -->
-<data xmlns='urn:xmpp:bloop2:example'>
-  <data>U28sIG5leHQgRk9TREVNIC0gMjAxOCwgdGhhdCBpcy4uLg==</data>
-  <description>BLOOP2 is cool!</description>
-</data>
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <data xmlns='urn:xmpp:bloop2:example'>
+    <data>U28sIG5leHQgRk9TREVNIC0gMjAxOCwgdGhhdCBpcy4uLg==</data>
+    <description>BLOOP2 is cool!</description>
+  </data>
+</task-data>
 
 <!-- The Client now responds -->
-<upgrade xmlns='urn:xmpp:bloop2:example'>
-  <response>Li4uSSdsbCBidXkgYSBiZWVyIGZvciB0aGUgZmlyc3QgcGVyc29uIHdoby4uLg==</response>
-  <finalize>42</finalize>
-</upgrade>
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <upgrade xmlns='urn:xmpp:bloop2:example'>
+    <response>Li4uSSdsbCBidXkgYSBiZWVyIGZvciB0aGUgZmlyc3QgcGVyc29uIHdoby4uLg==</response>
+    <finalize>42</finalize>
+  </upgrade>
+</task-data>
 
 <!-- The upgrade was performed and the Server finishes authentication -->
 <success xmlns='urn:xmpp:sasl:2'>
   <authorization-identifier>juliet@montague.example</authorization-identifier>
 </success>
 ]]></example>
-
-  <section2 topic="SCRAM upgrade" anchor="scram-upgrade">
-    <p>For upgrades of SCRAM mechanisms as defined in &rfc5802;, the server has to provide the needed data for the client to calculate the SaltedPassword as defined in this RFC (or some RFC updating it), namely the iteration count and salt. To do so the server sends a &lt;parameters/> element namespaced to "urn:xmpp:sasl:2" containing the salt and iteration count in the elements &lt;salt/> and &lt;iteration/> as defined in that RFC, omitting the "s=" and "i=" prefix.</p>
-    <p>The client then calculates the SaltedPassword and sends back its base64 encoded value inside a &lt;hash/> element namespaced to "urn:xmpp:sasl:2".</p>
-    <p>The name of the upgrade task MUST NOT conain the "-PLUS" suffix, because channel-binding is not relevant for upgrade tasks.</p>
-    <example caption="SCRAM hash upgrade task for SCRAM-SHA-256 after successful SCRAM-SHA-1-PLUS authentication"><![CDATA[
-<!-- The Server provides the SCRAM upgrade task requested by the client in its <authenticate/> element -->
-<continue xmlns='urn:xmpp:sasl:2'>
-  <!-- Base64 of: 'v=msVHs/BzIOHDqXeVH7EmmDu9id8=' -->
-  <additional-data>
-    dj1tc1ZIcy9CeklPSERxWGVWSDdFbW1EdTlpZDg9
-  </additional-data>
-  <tasks>
-    <task>UPGR-SCRAM-SHA-256</task>
-  </tasks>
-</continue>
-
-<!-- The Client initiates the task -->
-<next xmlns='urn:xmpp:sasl:2' task='UPGR-SCRAM-SHA-256'/>
-
-<!--
-  The server sends the required salt and iteration count.
--->
-<parameters xmlns='urn:xmpp:sasl:2'>
-  <salt>A_SXCRXQ6sek8bf_Z</salt>
-  <iterations>4096</iterations>
-</parameters>
-
-<!-- The client responds with the base64 encoded SaltedPassword. -->
-<hash xmlns='urn:xmpp:sasl:2'>
-  BzOnw3Pc5H4bOLlPZ/8JAy6wnTpH05aH21KW2+Xfpaw=
-</hash>
-
-<!--
-  Finally, the server sends a success after adding the salted SHA-256 hash to its database.
-  A SASL2 success always includes the authorization identifier.
--->
-<success xmlns='urn:xmpp:sasl:2'>
-  <authorization-identifier>user@example.org</authorization-identifier>
-</success>
-]]></example>
-  </section2>
 </section1>
 
 <section1 topic='Business Rules' anchor='rules'>
@@ -677,16 +643,20 @@
 <!--
   This 2FA process is both unrealistic and also uses multiple round-trips.
 -->
-<question xmlns='urn:example:unrealistic2fa'>
-  PDE4OTYuNjk3MTcwOTUyQHBvc3RvZmZpY2UucmVzdG9uLm1jaS5uZXQ+
-</question>
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <question xmlns='urn:example:unrealistic2fa'>
+    PDE4OTYuNjk3MTcwOTUyQHBvc3RvZmZpY2UucmVzdG9uLm1jaS5uZXQ+
+  </question>
+</task>
 
 <!--
   The client responds here.
 -->
-<answer xmlns='urn:example:unrealistic2fa'>
-  dGltIGI5MTNhNjAyYzdlZGE3YTQ5NWI0ZTZlNzMzNGQzODkw
-</answer>
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <answer xmlns='urn:example:unrealistic2fa'>
+    dGltIGI5MTNhNjAyYzdlZGE3YTQ5NWI0ZTZlNzMzNGQzODkw
+  </answer>
+</task>
 
 <!--
   Finally, the server sends a success.
@@ -702,11 +672,6 @@
     alice@example.org/this-one-please
   </authorization-identifier>
 </success>
-<!--
-  The Server also sends an (empty) features element.
-  The client can simply continue and send stanzas.
--->
-<stream:features/>
 ]]></example>
     <p>Although the unrealistic 2FA here uses 2 round-trips (real ones will probably use one), the embedding of resource binding as shown here means that a second RTT is saved by SASL2, and there's no net change. A more realistic example would see RTTs saved, and additional negotiations could be added to further reduce RTTs.</p>
   </section2>
@@ -801,17 +766,6 @@
           </xs:sequence>
       </xs:complexType>
     </xs:element>
-    
-    <xs:element name="parameters">
-      <xs:complexType>
-        <xs:sequence>
-          <xs:element name="salt" type="SaslData" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="iterations" type="iterationCount" minOccurs="1" maxOccurs="1"/>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:element>
-    
-    <xs:element name="hash" type="SaslData"/>
 
     <xs:simpleType name="Jid">
         <xs:restriction base="xs:string">
@@ -829,12 +783,6 @@
     <xs:simpleType name="SaslData">
         <xs:restriction base="xs:base64Binary"/>
     </xs:simpleType>
-    
-    <xs:simpleType name="iterationCount">
-    <xs:restriction base="xs:integer">
-        <xs:minInclusive value="1"/>
-    </xs:restriction>
-</xs:simpleType>
 </xs:schema>
 ]]></code>
   </section1>
