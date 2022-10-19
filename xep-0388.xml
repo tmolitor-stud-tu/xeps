@@ -32,7 +32,7 @@
       <ul>
         <li>Bump namespace</li>
         <li>Make SCRAM hashes (and other SASL mechanism families) upgradable</li>
-        <li>Add dependency on &xep0440; and &rfc5802;</li>
+        <li>Add reference to &xep0440; and &rfc5802;</li>
         <li>Update security considerations and business rules</li>
         <li>Clarify &lt;continue/> and tasks</li>
         <li>Add expansion point to inline stream resumption and BIND2 (and possibly others)</li>
