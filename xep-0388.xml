@@ -252,7 +252,7 @@
   <additional-data>
     ip/AeIOfZXKBV+fW2smE0GUB3I//nnrrLCYkt0Vj
   </additional-data>
-  <authorization-identifier>juliet@montague.example</authorization-identifier>
+  <authorization-identifier>juliet@montague.example/Balcony/a987dsh9a87sdh</authorization-identifier>
 </success>
 ]]></example>
       <p>The results of activating any requested inline stream features are included in the server's &lt;success/> response.</p>
@@ -270,7 +270,6 @@
     </section3>
     <section3 topic="Failure" anchor="failure">
       <p>A &lt;failure/> element is used by the server to terminate the authentication attempt. It MAY contain application-specific error codes, and MAY contain a textual error. It MUST contain one of the SASL error codes from RFC 6120 Section 6.5.</p>
-      <p>It MAY contain an &lt;additional-data/> element, containing additional data from the SASL mechanism that has just failed.</p>
       <p>The server MUST NOT process any inline features requested by the client in a failed authentication request, if any.</p>
       <example caption="Failure"><![CDATA[
 <failure xmlns='urn:xmpp:sasl:2'>
@@ -281,7 +280,7 @@
 ]]></example>
     </section3>
     <section3 topic="Continue" anchor="continue">
-      <p>A &lt;continue/> element is used to indicate that while the SASL exchange was successful, it is insufficient to allow authentication at this time. This can be used to indicate that the Client needs to perform a Second Factor Authentication ("2FA"), needs to perform an SCRAM upgrade task as requested by the client, or is required to change password.</p>
+      <p>A &lt;continue/> element is used to indicate that while the SASL exchange was successful, it is insufficient to allow authentication at this time. This can be used to indicate, for example, that the Client needs to perform a Second Factor Authentication ("2FA"), needs to perform an SCRAM upgrade task as requested by the client, or is required to change password (this list is not meant to be exhaustive in any way).</p>
       <p>Such tasks are presented within a &lt;tasks> element, which contains a sequence of &lt;task> elements, each containing a name. These tasks are analogous to a SASL mechanism, but have a number of differences - they may never attempt to negotiate a new authorization identifier, nor a new security layer.</p>
       <p>Like the &lt;success/> element, the &lt;continue/> element MAY contain an &lt;additional-data/> element containing additional data from the SASL mechanism that has completed.</p>
       <p>A client MAY choose any one of the offered tasks; if multiple are required a sequence of &lt;continue> exchanges will occur until all mandatory tasks are complete.</p>
@@ -410,10 +409,10 @@
   <p>Relative to the SASL profile documented in RFC 6120, this introduces more data unprotected by any security layer negotiated by SASL itself.</p>
   <p>While no actual exchanges are introduced that are unprotected, the nature of this exchange might allow for (for example) a resource binding extension to be introduced.</p>
   <p>SASL security layers are sparingly used in the field, however, so this is thought to be a theoretical, rather than practical, concern.</p>
-  <p>As explained in § 13.8.3 of &rfc6120;, servers and clients SHOULD NOT support SASL PLAIN unless it is required by the authentication backend. Usage of PLAIN allows for trivial downgrade atacks by Man-In-The-Middle attackers circumventing any possible channel-binding or mutual authentication and even allowing the attacker to gain access to the cleartext password. If possible, PLAIN should be disabled by default on servers and clients and only be enabled when configured by the admin respective client user (if at all).</p>
-  <p>This protocol allows the client to provide a hint of its identity prior to authentication. This value MUST NOT be trusted to contain the real identity of the connecting client. Varying pre-authentication responses (such as supported SASL mechanisms) based on this value may allow unauthorized parties to discover whether an account exists, and even guess at what software might be used with that account (e.g. by observing whether the client has upgraded to specific mechanisms). Minimizing differences between the default response for unregistered JIDs and registered JIDs, as well as rate-limiting (to prevent enumeration attempts), are possible countermeasures. If the server does not know the client-identity it is RECOMMENDED to randomize the list of provided SASL mechanisms to reduce these risks even further.</p>
+  <p>As explained in § 13.8.3 of &rfc6120;, servers and clients SHOULD NOT support SASL PLAIN. Usage of PLAIN allows for trivial downgrade atacks by Man-In-The-Middle attackers circumventing any possible channel-binding or mutual authentication and even allowing the attacker to gain access to the cleartext password. If possible, PLAIN should be disabled by default on servers and clients and only be enabled when configured by the admin respective client user (if at all).</p>
+  <p>This protocol makes use of the hint of its identity contained in the stream "from" attribute as defined in &rfc6120; prior to authentication. This value MUST NOT be trusted to contain the real identity of the connecting client. Varying pre-authentication responses (such as supported SASL mechanisms) based on this value may allow unauthorized parties to discover whether an account exists, and even guess at what software might be used with that account (e.g. by observing whether the client has upgraded to specific mechanisms). Minimizing differences between the default response for unregistered JIDs and registered JIDs, as well as rate-limiting (to prevent enumeration attempts), are possible countermeasures. If the server does not know the client-identity it is RECOMMENDED to randomize the list of provided SASL mechanisms to reduce these risks even further.</p>
   <p>SASL2 MUST only be used by Clients or offered by Servers after TLS negotiation, see § 5.2 and § 5.3.4 of &rfc6120;.</p>
-  <p>Clients MUST use channel-binding, if available, when requesting an upgrade to make sure no MITM can eavesdrop that hash and subsequently use it for authentication. Note that a client can always choose to not upgrade SASL mechanisms if it can not use channel-binding or the connection is otherwise deemed not secure enough.</p>
+  <p>Clients SHOULD use channel-binding, if available, when requesting an upgrade to make sure no MITM can eavesdrop that hash and subsequently use it for authentication. Note that a client can always choose to not upgrade SASL mechanisms if it can not use channel-binding or the connection is otherwise deemed not secure enough.</p>
   <p>Clients MUST NOT send, and servers MUST NOT process, authentication requests included in the TLS 0-RTT ("early data") extension. Such data is vulnerable to replay attacks, and without adequate protection this could allow an attacker to disrupt established sessions or cause other side-effects depending on the inline features negotiated. This rule may be overridden by later specifications, provided they define appropriate protocols to mitigate these issues. Examples of these attacks and mitigations are discussed in Section 8 of &rfc8446;.</p>
 </section1>
 
