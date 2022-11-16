@@ -297,14 +297,29 @@
       <p>After the final octet of the first &lt;continue> element, any SASL security layer negotiated in the preceding exchange SHALL be immediately in effect.</p>
       <p>Clients respond with a &lt;next/> element, which has a single mandatory attribute of "task", containing the selected task name, and MAY contain any other element as defined in a future protocol defining this task.</p>
       <p>The concrete elements exchanged for each task after the &lt;next/> reside inside a &lt;task-data/> wrapper element in the namespace "urn:xmpp:sasl:2". Each wrapper element can contain any other element as defined in a future protocol defining this concrete task. Each task MUST end either by the server sending a &lt;failure/> element, if the task failed, a &lt;continue/> element, if the task was completed successfully and the server requests the client to perform a new task, or a &lt;success/> element, indicating that the task was completed successfully and no further tasks are needed.</p>
-      <example caption="Client Continues"><![CDATA[
+      <example caption="Fictional TOTP task"><![CDATA[
+<!-- Client starts TOTP-EXAMPLE task -->
 <next xmlns='urn:xmpp:sasl:2' task='TOTP-EXAMPLE'>
   <totp xmlns="urn:totp:example">
     SSd2ZSBydW4gb3V0IG9mIGlkZWFzIGhlcmUu
   </totp>
 </next>
-]]></example>
-      <example caption="Server sends success"><![CDATA[
+
+<!-- Server provides needed data to Client -->
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <totp xmlns="urn:totp:example">
+    94d27acffa2e99a42ba7786162a9e73e7ab17b9d
+  </totp>
+</task-data>
+
+<!-- Client responds with requested TOP data -->
+<task-data xmlns='urn:xmpp:sasl:2'>
+  <totp xmlns="urn:totp:example">
+    OTRkMjdhY2ZmYTJlOTlhNDJiYTc3ODYxNjJhOWU3M2U3YWIxN2I5ZAo=
+  </totp>
+</task-data>
+
+<!-- Server indicates successful completion of TOTP-EXAMPLE task -->
 <success xmlns='urn:xmpp:sasl:2'>
   <totp xmlns="urn:totp:example">
     SGFkIHlvdSBnb2luZywgdGhlcmUsIGRpZG4ndCBJPw==
