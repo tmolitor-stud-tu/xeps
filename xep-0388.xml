@@ -11,6 +11,7 @@
   &LEGALNOTICE;
   <number>0388</number>
   <status>Deferred</status>
+  <approver>Council</approver>
   <type>Standards Track</type>
   <sig>Standards</sig>
   <dependencies>
