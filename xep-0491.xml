@@ -1,9 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE xep SYSTEM 'xep.dtd' [
   <!ENTITY xep-number "0491">
-  <!ENTITY webxdc "<span class='ref'><link url='https://webxdc.org'>WebXDC</link><note>WebXDC docs: <link url='https://webxdc.org/docs/'>https://webxdc.org/docs/</link></note></span>">
-  <!ENTITY webxdc2 "<span class='ref'><link url='https://webxdc.org/docs/spec/sendUpdate.html'>WebXDC</link><note>WebXDC sendUpdate: <link url='https://webxdc.org/docs/spec/sendUpdate.html'>https://webxdc.org/docs/spec/sendUpdate.html</link></note></span>">
-  <!ENTITY webxdcaddrname "<span class='ref'><link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>WebXDC</link><note>WebXDC selfAddr and selfName: <link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>https://webxdc.org/docs/spec/selfAddr_and_selfName.html</link></note></span>">
+  <!ENTITY widget "WebXDC widget">
+  <!ENTITY webxdc "<span class='ref'><link url='https://webxdc.org/docs/spec/index.html'>WebXDC</link><note>WebXDC docs: <link url='https://webxdc.org/docs/spec/index.html'>https://webxdc.org/docs/spec/index.html</link></note></span>">
+  <!ENTITY webxdcMessenger "<span class='ref'><link url='https://webxdc.org/docs/spec/messenger.html'>WebXDC messenger specification</link><note>WebXDC messenger specification: <link url='https://webxdc.org/docs/spec/messenger.html'>https://webxdc.org/docs/spec/messenger.html</link></note></span>">
+  <!ENTITY webxdcSendUpdate "<span class='ref'><link url='https://webxdc.org/docs/spec/sendUpdate.html'>WebXDC sendUpdate</link><note>WebXDC sendUpdate: <link url='https://webxdc.org/docs/spec/sendUpdate.html'>https://webxdc.org/docs/spec/sendUpdate.html</link></note></span>">
+  <!ENTITY webxdcUpdateListener "<span class='ref'><link url='https://webxdc.org/docs/spec/setUpdateListener.html'>WebXDC setUpdateListener</link><note>WebXDC setUpdateListener: <link url='https://webxdc.org/docs/spec/setUpdateListener.html'>https://webxdc.org/docs/spec/setUpdateListener.html</link></note></span>">
+  <!ENTITY webxdcSendToChat "<span class='ref'><link url='https://webxdc.org/docs/spec/sendToChat.html'>WebXDC sendToChat</link><note>WebXDC sendToChat: <link url='https://webxdc.org/docs/spec/sendToChat.html'>https://webxdc.org/docs/spec/sendToChat.html</link></note></span>">
+  <!ENTITY webxdcImportFiles "<span class='ref'><link url='https://webxdc.org/docs/spec/importFiles.html'>WebXDC importFiles</link><note>WebXDC importFiles: <link url='https://webxdc.org/docs/spec/importFiles.html'>https://webxdc.org/docs/spec/importFiles.html</link></note></span>">
+  <!ENTITY webxdcaddrname "<span class='ref'><link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>WebXDC selfAddr and selfName</link><note>WebXDC selfAddr and selfName: <link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>https://webxdc.org/docs/spec/selfAddr_and_selfName.html</link></note></span>">
+  <!ENTITY webxdcJoinRealtimeChannel "<span class='ref'><link url='https://webxdc.org/docs/spec/joinRealtimeChannel.html'>WebXDC joinRealtimeChannel</link><note>WebXDC joinRealtimeChannel: <link url='https://webxdc.org/docs/spec/joinRealtimeChannel.html'>https://webxdc.org/docs/spec/joinRealtimeChannel.html</link></note></span>">
   <!ENTITY % ents SYSTEM 'xep.ent'>
 %ents;
 ]>
@@ -11,7 +17,7 @@
 <xep>
 <header>
   <title>WebXDC</title>
-  <abstract>This document defines an XMPP protocol extension to communicate WebXDC widgets and their state updates.</abstract>
+  <abstract>This document defines an XMPP protocol extension to communicate &widget;s and their state updates.</abstract>
   &LEGALNOTICE;
   <number>&xep-number;</number>
   <status>Experimental</status>
@@ -21,11 +27,29 @@
   <dependencies>
     <spec>XMPP Core</spec>
     <spec>XMPP IM</spec>
+    <spec>XEP-0335</spec>
+    <spec>XEP-0421</spec>
+    <spec>XEP-0428</spec>
+    <spec>XEP-0166</spec>
+    <spec>XEP-0343</spec>
+    <link url='https://webxdc.org/docs/'>WebXDC</link>
   </dependencies>
   <supersedes/>
   <supersededby/>
   <shortname>webxdc</shortname>
   &singpolyma;
+  &tmolitor;
+  <revision>
+    <version>0.2.0</version>
+    <date>2024-07-11</date>
+    <initials>spw</initials>
+    <initials>tm</initials>
+    <remark>
+      <ul>
+        <li>Overhaul whole spec</li>
+      </ul>
+    </remark>
+  </revision>
   <revision>
     <version>0.1.2</version>
     <date>2024-07-03</date>
@@ -55,11 +79,20 @@
   </revision>
 </header>
 <section1 topic='Introduction' anchor='intro'>
-  <p>&webxdc; is a specification for sharing interactive embeddable widgets built with web-like technologies (HTML, JavaScript) via a chat platform, and sharing state between participants in the chat without allowing external network connections for the sandboxed web content. In order to provide support for &webxdc; widgets, the host protocol must define a way to transmit the widgets and the associated state updates.</p>
+  <p>&webxdc; is a specification for sharing interactive embeddable widgets built with web-like technologies (HTML, JavaScript) via a chat platform, and sharing state between participants in the chat without allowing external network connections for the sandboxed web content. In order to provide support for &widget;s, the host protocol (xmpp in our case) must define a way to transmit these widgets and the associated state updates triggered by the WebXDC API exposed to these widgets by the host application.</p>
 </section1>
-<section1 topic='Sending a Widget in a Message' anchor='send'>
-  <p>A widget may be attached to a message using any file-transfer mechanism supported by the client, such as &xep0066; or &xep0385;. The message MUST contain a <tt>&lt;thread/&gt;</tt> element with a new, unique id.  Including multiple file-transfer mechanisms may be beneficial for broad compatibility.</p>
-<example caption='An example of sending a widget'><![CDATA[
+<section1 topic='Glossary' anchor='glossary'>
+  <p>This specification uses some terminology defined below:</p>
+  <ul>
+    <li>&widget;: the WebXDC application delivered in a *.xdc zip container as defined by &webxdc;</li>
+    <li>host application: the xmpp client embedding the &widget;</li>
+    <li>peer: the chat partner in a 1:1 chat or one of the participants of a &xep0045;</li>
+    <li>host protocol: the protocol used by the peers to communicate (xmpp in our case)</li>
+  </ul>
+</section1>
+<section1 topic='Sending a &widget;' anchor='send'>
+  <p>A &widget; may be attached to a message stanza using any file-transfer mechanism supported by the client, such as &xep0066; or &xep0385;. The message MUST contain a <tt>&lt;thread/&gt;</tt> element with a new, unique id. This specification suggests to use UUID v4 or something providing the same level of entropy. Note: including multiple file-transfer mechanisms in the same <tt>&lt;message/></tt> may be beneficial for broader compatibility.</p>
+<example caption='An example of sending a &widget;'><![CDATA[
 <message to='romeo@montague.lit' type='chat'>
   <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
   <media-sharing xmlns='urn:xmpp:sims:1'>
@@ -71,87 +104,141 @@
       <thumbnail xmlns='urn:xmpp:thumbs:1' uri='cid:sha1+ffd7c8d28e9c5e82afea41f97108c6b4@bob.xmpp.org' media-type='image/png' width='96' height='96'/>
     </file>
     <sources>
-      <reference xmlns='urn:xmpp:reference:0' type='data' uri='https://download.montague.lit/4a771ac1-f0b2-4a4a-9700-f2a26fa2bb67/calendar.xdc />
+      <reference xmlns='urn:xmpp:reference:0' type='data' uri='https://download.montague.lit/4a771ac1-f0b2-4a4a-9700-f2a26fa2bb67/calendar.xdc' />
     </sources>
   </media-sharing>
-</message>]]></example>
-</section1>
-<section1 topic='Sending a State Update' anchor='state'>
-  <p>When a widget needs to communicate an update to other participants, this update may contain the following information as defined in &webxdc2;:</p>
-  <table caption='Data transmitted with a WebXDC update'>
-    <tr>
-      <th>Item</th>
-      <th>Description</th>
-    </tr>
-    <tr>
-      <td>info</td>
-      <td>Human readable message to send to the chat</td>
-    </tr>
-    <tr>
-      <td>summary</td>
-      <td>Text which may be shown next to the widget launcher</td>
-    </tr>
-    <tr>
-      <td>document</td>
-      <td>Title which may be shown next to the widget launcher</td>
-    </tr>
-    <tr>
-      <td>payload</td>
-      <td>Arbitrary JSON serializable value</td>
-    </tr>
-  </table>
-  <p>These items are delivered in a message which MUST have the same <tt>&lt;thread&gt;</tt> as the message which originally delivered the widget itself, and except for the info item as children of an element <tt>&lt;x xmlns="urn:xmpp:webxdc:0"&gt;</tt> as defined below.</p>
-  <section2 topic='The Info Item' anchor='info'>
-    <p>The info item is human-readable and is not needed by the widget itself, thus it is appropriate to transmit it anywhere that it might be visible to all participants, such as in a message body. If this is the only item present, an empty <tt>&lt;x&gt;</tt> element SHOULD still be included in the message to signal this update came from the widget.</p>
-    <example caption='An example of sending just info'><![CDATA[
-<message to='romeo@montague.lit' type='chat'>
-  <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
-  <x xmlns='urn:xmpp:webxdc:0' />
-  <body>Juliet has added an event.</body>
-</message>]]></example>
-  </section2>
-  <section2 topic='The Document and Summary Items' anchor='summary'>
-    <p>These items are delivered as children of the <tt>&lt;x&gt;</tt> item, and in the same namespace. The document item using a <tt>&lt;document&gt;</tt> child and the summary item using a <tt>&lt;summary&gt;</tt> child.</p>
-    <example caption='An example of sending document and summary'><![CDATA[
-<message to='romeo@montague.lit' type='chat'>
-  <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
-  <x xmlns='urn:xmpp:webxdc:0'>
-    <document>Our Calendar</document>
-    <summary>12 events</summary>
+  <x xmlns='jabber:x:oob'>
+    <url>https://download.montague.lit/4a771ac1-f0b2-4a4a-9700-f2a26fa2bb67/calendar.xdc</url>
   </x>
 </message>]]></example>
+</section1>
+<section1 topic="WebXDC API">
+  <p>WebXDC defines various JavaScript APIs injected into the &widget; to allow it to interact with the outside world. This section defines the interaction of this API with the host application in the xmpp context. Please refer to the &webxdc; specification for a full documentation of this API. Hosting applications MUST implement the &webxdcMessenger;.</p>
+  <section2 topic='Sending a state update' anchor='state'>
+    <p>When a &widget; needs to communicate an update to peers in a chat, this update may contain one or more of the following items as defined in &webxdcSendUpdate;. Please note: the list below may be superseded any time by an update of the &webxdcSendUpdate; specification itself.</p>
+    <table caption='Data transmitted with a WebXDC update'>
+      <tr>
+        <th>Item (element name)</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>info</td>
+        <td>Optional human readable message to send to the chat.</td>
+      </tr>
+      <tr>
+        <td>summary</td>
+        <td>Optional text which may be shown next to the &widget; launcher.</td>
+      </tr>
+      <tr>
+        <td>document</td>
+        <td>Optional title which may be shown next to the &widget; launcher.</td>
+      </tr>
+      <tr>
+        <td>payload</td>
+        <td>Mandatory arbitrary JSON serializable value using &xep0335;.</td>
+      </tr>
+    </table>
+    <p>These items are delivered in a <tt>&lt;message/></tt> stanza which MUST have the same <tt>&lt;thread/></tt> value as the message which originally <link url='#send'>delivered the &widget; itself</link>. This stanza MUST contain a <tt>&lt;state-update/></tt> child having the <tt>urn:xmpp:webxdc:0</tt> namespace. This element in turn has one child for every item named in the table above (or in the &webxdcSendUpdate; specification itself) in the same namespace. The <tt>&lt;state-update/></tt> element MUST contain at least a <tt>&lt;payload/></tt> child. This <tt>&lt;payload/></tt> element MUST have a &xep0335; <tt>&lt;json/></tt> element as child carrying the JSON serialized data as defined in &xep0335;.</p>
+    <p>All length contraints for these items apply as defined in &webxdcSendUpdate;.</p>
+    <section3 topic='The special "descr" argument' anchor='state-update-descr'>
+      <p>The state update as specified in &webxdcSendUpdate; SHOULD be accompanied by a short, human-readable description what the update is all about. If not empty, this SHOULD be transmitted in the <tt>&lt;body/></tt> of the <tt>&lt;message/></tt> stanza so that all participants of a 1:1 or &xep0045; can see it even if they don't implement this specification.</p>
+      <p>The <tt>&lt;message/></tt> stanza SHOULD leverage &xep0428; to mark the complete body as fallback. Hosting applications implementing this specification SHOULD therefore ignore this body and not display it. See <link url='#update-listener'>update listener</link> for an explanation on how to handle and display the <tt>info</tt> item instead.</p>
+    </section3>
+    <section3 topic='Example State Updates' anchor='update-examples'>
+      <p>This section contains some examples to showcases various types of state updates.</p>
+      <example caption='A complete example of sending document, summary, info and payload elements'><![CDATA[
+  <message to='romeo@montague.lit' type='chat'>
+    <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
+    <state-update xmlns='urn:xmpp:webxdc:0'>
+      <info>Juliet has added an event.</info>
+      <summary>12 events</summary>
+      <document>Our Calendar</document>
+      <payload>
+        <json xmlns='urn:xmpp:json:0'>{"event_type": "birthday", "attendees": 42}</json>
+      </payload>
+    </state-update>
+    <body>Juliet has added an event in our glorious WebXDC calendar app.</body>
+    <fallback xmlns='urn:xmpp:fallback:0' for='urn:xmpp:webxdc:0'>
+      <body start='0' end='62' />
+    </fallback>
+  </message>]]></example>
+      <example caption='An example of sending just an info element alongside the mandatory payload element'><![CDATA[
+  <message to='romeo@montague.lit' type='chat'>
+    <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
+    <state-update xmlns='urn:xmpp:webxdc:0'>
+      <info>Juliet has added an event.</info>
+      <payload>
+        <json xmlns='urn:xmpp:json:0'>{"event_type": "birthday", "attendees": 42}</json>
+      </payload>
+    </state-update>
+    <body>Juliet has added an event in our glorious WebXDC calendar app.</body>
+    <fallback xmlns='urn:xmpp:fallback:0' for='urn:xmpp:webxdc:0'>
+      <body start='0' end='62' />
+    </fallback>
+  </message>]]></example>
+      <example caption='An example of sending just the mandatory payload element, but none of the optional items'><![CDATA[
+  <message to='romeo@montague.lit' type='chat'>
+    <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
+    <state-update xmlns='urn:xmpp:webxdc:0'>
+      <payload>
+        <json xmlns='urn:xmpp:json:0'>{"added_reminder": "Remind me!"}</json>
+      </payload>
+    </state-update>
+    <body>Something really cool happened! Use a WebXDC capable client to see it.</body>
+    <fallback xmlns='urn:xmpp:fallback:0' for='urn:xmpp:webxdc:0'>
+      <body start='0' end='70' />
+    </fallback>
+  </message>]]></example>
+    </section3>
   </section2>
-  <section2 topic='The Payload Item' anchor='payload'>
-    <p>The payload item is delivered using &xep0335; as a child of the <tt>&lt;x&gt;</tt> element</p>
-    <example caption='An example of sending payload'><![CDATA[
-<message to='romeo@montague.lit' type='chat'>
-  <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
-  <x xmlns='urn:xmpp:webxdc:0'>
-    <json xmlns='urn:xmpp:json:0'>{}</json>
-  </x>
-</message>]]></example>
+  <section2 topic='Update listener' anchor='update-listener'>
+    <p>The update listener specified in &webxdcUpdateListener; is used to inform the &widget; of incoming <link url='#state'>state updates</link>. If the state update contains an <tt>info</tt> item, the text of that item should be added to the chat. For consistent UX accross the xmpp ecosystem, this specification suggests to display these like other status updates (e.g. &xep0045; join/leave etc.).</p>
+  </section2>
+  <section2 topic='Send to chat' anchor='send-to-chat'>
+    <p>The <tt>sendToChat</tt> API defined in &webxdcSendToChat; can be used by the &widget; to send arbitrary messages to other participants of a chat. Messages SHOULD NOT be sent automatically, see the <link url='#security'>security considerations</link>.</p>
+  </section2>
+  <section2 topic='Import files' anchor='import-files'>
+    <p>The <tt>importFiles</tt> API defined in &webxdcImportFiles; can be used by the &widget; to show a file open dialog and retrieve the contents of the file selected by the user. The list of files offered to the user by the host application MAY be restricted for security reasons.</p>
+  </section2>
+  <section2 topic='Injected values of selfAddr &amp; selfName' anchor='injected-data'>
+    <p>&widget;s get various readonly values injected into them by the host application. These are defined in the xmpp context as follows.</p>
+    <section3 topic='Value of injected selfAddr' anchor='selfAddr'>
+      <p>The <tt>selfAddr</tt> property defined by &webxdcaddrname; can be used by the &widget; to determine if a received <link url='#state'>state update</link> is coming from itself or a different peer (the sending widget has to add the value to the JSON payload for the receiver being able to compare it against its own value).</p>
+      <p>Since that value MUST be unique per chat and stable across all invocations of the &widget; in that same chat, the value of <tt>selfAddr</tt> is defined as follows:
+        <ul>
+          <li>When the chat is a 1:1 chat this property MUST be set to the XMPP URI of the local party's bare JID e.g. <tt>juliet@capulet.lit</tt></li>
+            <li>If the chat is a &xep0045; that supports &xep0421; this property MUST be set to the local party's <tt>occupant-id</tt>.</li>
+            <li>Any other types of chat aren't specified herein and SHOULD NOT set the <tt>seldAddr</tt> at all. That is especially true for a &xep0045; that does not support &xep0421;.</li>
+        </ul>
+      </p>
+    </section3>
+    <section3 topic='Value of injected  selfName' anchor='selfName'>
+      <p>The <tt>selfName</tt> property defined by &webxdcaddrname; is human readable and the &webxdc; specification leaves it to the hosting protocol as to what value should be used.</p>
+      <p>In the xmpp context it SHOULD be set to the local &xep0045; or &xep0369; nickname or, if not in a MUC/MIX, the &xep0172; or node-part of the user's own JID in a 1:1 chat.</p>
+    </section3>
+  </section2>
+  <section2 topic='Import files' anchor='import-files'>
+    <p>The <tt>importFiles</tt> API defined in &webxdcImportFiles; can be used by the &widget; to show a file open dialog and retrieve the contents of the file selected by the user. The list of files offered to the user by the host application MAY be restricted for security reasons.</p>
+  </section2>
+  <section2 topic='Realtime channels' anchor='realtime-channels'>
+    <p>The <tt>joinRealtimeChannel</tt> API defined in &webxdcJoinRealtimeChannel; can be used by the &widget; to open a direct realtime channel which is private, isolated and ephemeral to one or more peers in a chat. This API is optional and still experimental as of writing this specification.</p>
+    <p>Realtime channels SHOULD use &xep0343; on top of &xep0166; to establish a separate data channel to every peer in a chat. Peers not reachable should be considered offline. The host application SHOULD periodically retry to reach those peers and SHOULD try to reconnect jingle sessions terminated abnormally.</p>
+    <p>If the &widget; wants to sent realtime data using the <tt>send</tt> method, this data MUST be sent to all peers the host application is currently connected to using the respective data channel.</p>
+    <p>Using realtime channels might expose your IP-address to your peers in the chat the realtime channel was initiated in. Host applications MAY implement the same countermeasures as when implementing audio/video calls (e.g. always use a TURN server rather than direct p2p connections etc.).</p>
   </section2>
 </section1>
-<section1 topic='selfAddr' anchor='selfAddr'>
-  <p>&webxdcaddrname; widgets get various data injected into them by the host application. One of these worth mentioning is the <tt>selfAddr</tt> property.</p>
-	<ul>
-		<li>When the chat is a 1:1 chat this property SHOULD be set to the XMPP URI for the local party's bare Jabber ID e.g. <tt>juliet@capulet.lit</tt></li>
-		<li>When the chat supports &xep0421; this property SHOULD be set to the local party's occupant id.</li>
-		<li>Note that no other type of chat is specified here, and especially that a &xep0045; chat without support for &xep0421; SHOULD NOT use full Jabber ID or room nickname for the property, as it may case inconsistent behaviour in some widgets when the user changes their nickname.</li>
-	</ul>
-</section1>
-<section1 topic='selfName' anchor='selfName'>
-  <p>The <tt>selfName</tt> property defined by &webxdcaddrname; is human readable and may be set to anything useful per that specification. It MAY be set to the local &xep0045; nickname or &xep0172; where relevant.</p>
-</section1>
-<section1 topic='Accessibility Considerations' anchor='access'>
-  <p>None</p>
-</section1>
+
 <section1 topic='Security Considerations' anchor='security'>
-  <p>It is assumed that an implementation of this XEP will be paired with an implementation of &webxdc;. Please see &webxdc; for sandboxing and security considerations for your WebXDC implementation.</p>
-  <p>This XEP does not introduce any specific security considerations besides those present in any &webxdc; implementation.</p>
+  <p>The &webxdc; specification mandates that every &widget; MUST be properly sandboxed and only allowed to communicate with the outside world through the injected JavaScript API. Care MUST be taken to not accidentally allow network access to the sandboxed &widget;.</p>
+  <p>When in a &xep0045;, the injected <tt>selfAddr</tt> MUST NOT use full JID of that MUC or the room nickname of the local user, because this could expose security vulnerabilities in some &widget;s when the user changes their nickname.</p>
+  <p>All items of a received <link url='#state'>state update</link> SHOULD be truncated to the lengths specified in &webxdcSendUpdate;.</p>
+  <p>Messages sent to a chat by a &widget; using the <link url="send-to-chat">sendToChat API</link> SHOULD not be sent automatically, but require further user interaction. For example by adding the message as draft to the current chat requiring the user to still press the send button.</p>
+  <p>The list of files offered to the user by the host application to be opened by the &widget; using the &webxdcImportFiles; API MAY be restricted for security reasons.</p>
+  <p>Using realtime channels might expose your IP-address to your peers in the chat the realtime channel was initiated in. Host applications MAY implement the same countermeasures as when implementing audio/video calls (e.g. always use a TURN server rather than direct p2p connections etc.).</p>
+  <p>Always refer to the &webxdc; specification for security considerations, too!</p>
 </section1>
 <section1 topic='Privacy Considerations' anchor='privacy'>
-  <p>It should be clear to users that their actions inside an embedded widget may be transmitted to other participants.</p>
+  <p>The UX should make it clear to users that their actions inside a &widget; may be transmitted to other participants.</p>
 </section1>
 <section1 topic='IANA Considerations' anchor='iana'>
   <p>This document requires no interaction with &IANA;.</p>
@@ -184,12 +271,19 @@
 
   <xs:import namespace='urn:xmpp:json:0' schemaLocation='https://xmpp.org/schemas/json.xsd' />
 
-  <xs:element name='x'>
+  <xs:element name='state-update'>
     <xs:complexType>
       <xs:sequence>
+        <xs:element name='info' type='xsd:string' minOccurs='0' maxOccurs='1'/>
         <xs:element name='summary' type='xsd:string' minOccurs='0' maxOccurs='1'/>
         <xs:element name='document' type='xsd:string' minOccurs='0' maxOccurs='1'/>
-        <xs:element name='json' type='json:json' minOccurs='0' maxOccurs='1'/>
+        <xs:element name='payload' minOccurs='0' maxOccurs='1'/>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='json' type='json:json' minOccurs='0' maxOccurs='1'/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
