@@ -1,7 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE xep SYSTEM 'xep.dtd' [
   <!ENTITY xep-number "0491">
-  <!ENTITY webxdc "<span class='ref'><link url='https://webxdc.org'>WebXDC</link></span>">
+  <!ENTITY webxdc "<span class='ref'><link url='https://webxdc.org'>WebXDC</link><note>WebXDC docs: <link url='https://webxdc.org/docs/'>https://webxdc.org/docs/</link></note></span>">
+  <!ENTITY webxdc2 "<span class='ref'><link url='https://webxdc.org/docs/spec/sendUpdate.html'>WebXDC</link><note>WebXDC sendUpdate: <link url='https://webxdc.org/docs/spec/sendUpdate.html'>https://webxdc.org/docs/spec/sendUpdate.html</link></note></span>">
+  <!ENTITY webxdcaddrname "<span class='ref'><link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>WebXDC</link><note>WebXDC selfAddr and selfName: <link url='https://webxdc.org/docs/spec/selfAddr_and_selfName.html'>https://webxdc.org/docs/spec/selfAddr_and_selfName.html</link></note></span>">
   <!ENTITY % ents SYSTEM 'xep.ent'>
 %ents;
 ]>
@@ -53,10 +55,10 @@
   </revision>
 </header>
 <section1 topic='Introduction' anchor='intro'>
-  <p>&webxdc; is a specification for sharing interactive embeddable widgets built with web-like technologies (HTML, JavaScript) via a chat platform, and sharing state between participants in the chat without allowing external network connections. In order to use these, the host protocol must define a way to transmit the widgets and the associated state updates.</p>
+  <p>&webxdc; is a specification for sharing interactive embeddable widgets built with web-like technologies (HTML, JavaScript) via a chat platform, and sharing state between participants in the chat without allowing external network connections for the sandboxed web content. In order to provide support for &webxdc; widgets, the host protocol must define a way to transmit the widgets and the associated state updates.</p>
 </section1>
 <section1 topic='Sending a Widget in a Message' anchor='send'>
-  <p>A widget may be attached to a message using any file-transfer mechanism supported by the client, such as &xep0066; or &xep0385;. The message MUST contain a <tt>&lt;thread/&gt;</tt> element with a new, unique id.</p>
+  <p>A widget may be attached to a message using any file-transfer mechanism supported by the client, such as &xep0066; or &xep0385;. The message MUST contain a <tt>&lt;thread/&gt;</tt> element with a new, unique id.  Including multiple file-transfer mechanisms may be beneficial for broad compatibility.</p>
 <example caption='An example of sending a widget'><![CDATA[
 <message to='romeo@montague.lit' type='chat'>
   <thread>018fe972-ea89-7f4b-90f8-729b85b7f32d</thread>
@@ -75,7 +77,7 @@
 </message>]]></example>
 </section1>
 <section1 topic='Sending a State Update' anchor='state'>
-  <p>When a widget needs to communicate an update to other participants, this update may contain the following information:</p>
+  <p>When a widget needs to communicate an update to other participants, this update may contain the following information as defined in &webxdc2;:</p>
   <table caption='Data transmitted with a WebXDC update'>
     <tr>
       <th>Item</th>
@@ -98,7 +100,7 @@
       <td>Arbitrary JSON serializable value</td>
     </tr>
   </table>
-  <p>These items, except for the info item, are delivered in a message which MUST have the same <tt>&lt;thread&gt;</tt> as the message which originally delivered the widget itself, as children of an element <tt>&lt;x xmlns="urn:xmpp:webxdc:0"&gt;</tt> as defined below.</p>
+  <p>These items are delivered in a message which MUST have the same <tt>&lt;thread&gt;</tt> as the message which originally delivered the widget itself, and except for the info item as children of an element <tt>&lt;x xmlns="urn:xmpp:webxdc:0"&gt;</tt> as defined below.</p>
   <section2 topic='The Info Item' anchor='info'>
     <p>The info item is human-readable and is not needed by the widget itself, thus it is appropriate to transmit it anywhere that it might be visible to all participants, such as in a message body. If this is the only item present, an empty <tt>&lt;x&gt;</tt> element SHOULD still be included in the message to signal this update came from the widget.</p>
     <example caption='An example of sending just info'><![CDATA[
@@ -131,13 +133,22 @@
   </section2>
 </section1>
 <section1 topic='selfAddr' anchor='selfAddr'>
-  <p>WebXDC widgets get various data injected into them by the host application. One of these worth mentioning is the <tt>selfAddr</tt> property. When the chat is a 1:1 chat this property SHOULD be set to the XMPP URI for the local party's bare Jabber ID. When the chat supports &xep0421; this property SHOULD be set to the local party's occupant id.</p>
+  <p>&webxdcaddrname; widgets get various data injected into them by the host application. One of these worth mentioning is the <tt>selfAddr</tt> property.</p>
+	<ul>
+		<li>When the chat is a 1:1 chat this property SHOULD be set to the XMPP URI for the local party's bare Jabber ID e.g. <tt>juliet@capulet.lit</tt></li>
+		<li>When the chat supports &xep0421; this property SHOULD be set to the local party's occupant id.</li>
+		<li>Note that no other type of chat is specified here, and especially that a &xep0045; chat without support for &xep0421; SHOULD NOT use full Jabber ID or room nickname for the property, as it may case inconsistent behaviour in some widgets when the user changes their nickname.</li>
+	</ul>
+</section1>
+<section1 topic='selfName' anchor='selfName'>
+  <p>The <tt>selfName</tt> property defined by &webxdcaddrname; is human readable and may be set to anything useful per that specification. It MAY be set to the local &xep0045; nickname or &xep0172; where relevant.</p>
 </section1>
 <section1 topic='Accessibility Considerations' anchor='access'>
   <p>None</p>
 </section1>
 <section1 topic='Security Considerations' anchor='security'>
-  <p>This XEP does not have any specific security considerations, however it is assumed that it will be paired with an implementation of &webxdc; which requires very careful sandboxing.</p>
+  <p>It is assumed that an implementation of this XEP will be paired with an implementation of &webxdc;. Please see &webxdc; for sandboxing and security considerations for your WebXDC implementation.</p>
+  <p>This XEP does not introduce any specific security considerations besides those present in any &webxdc; implementation.</p>
 </section1>
 <section1 topic='Privacy Considerations' anchor='privacy'>
   <p>It should be clear to users that their actions inside an embedded widget may be transmitted to other participants.</p>
